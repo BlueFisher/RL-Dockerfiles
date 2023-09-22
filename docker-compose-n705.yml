@@ -1,0 +1,235 @@
+version: "3"
+
+services:
+  nextcloud-mariadb:
+    image: mariadb:10.9.4
+    container_name: nextcloud-mariadb
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - /docker-data/nextcloud-mariadb:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+
+  nextcloud-redis:
+    image: redis:7.0.7
+    container_name: nextcloud-redis
+    restart: always
+    volumes:
+      - /docker-data/nextcloud-redis:/data
+
+  nextcloud-cron:
+    image: nextcloud:27.0.2
+    container_name: nextcloud-cron
+    restart: always
+    volumes:
+      - /docker-data/nextcloud:/var/www/html
+    entrypoint: /cron.sh
+
+  nextcloud:
+    image: nextcloud:27.0.2
+    container_name: nextcloud
+    restart: always
+    environment:
+      - MYSQL_HOST=nextcloud-mariadb
+      - REDIS_HOST=nextcloud-redis
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - /docker-data/nextcloud:/var/www/html
+    depends_on:
+      - nextcloud-cron
+      - nextcloud-mariadb
+      - nextcloud-redis
+
+  onlyoffice-documentserver:
+    image: onlyoffice/documentserver:7.2.2
+    container_name: onlyoffice-documentserver
+    depends_on:
+      - onlyoffice-postgresql
+      - onlyoffice-rabbitmq
+    environment:
+      - DB_TYPE=postgres
+      - DB_HOST=onlyoffice-postgresql
+      - DB_PORT=5432
+      - DB_NAME=onlyoffice
+      - DB_USER=onlyoffice
+      - AMQP_URI=amqp://guest:guest@onlyoffice-rabbitmq
+    expose:
+      - '80'
+    stdin_open: true
+    restart: always
+    stop_grace_period: 60s
+    volumes:
+      - /docker-data/onlyoffice/data:/var/www/onlyoffice/Data
+      - /docker-data/onlyoffice/log:/var/log/onlyoffice
+      - /docker-data/onlyoffice/cache:/var/lib/onlyoffice/documentserver/App_Data/cache/files
+      - /docker-data/onlyoffice/example:/var/www/onlyoffice/documentserver-example/public/files
+      - /docker-data/onlyoffice/fonts:/usr/share/fonts
+
+  onlyoffice-rabbitmq:
+    container_name: onlyoffice-rabbitmq
+    image: rabbitmq:3.11.6
+    restart: always
+    expose:
+      - '5672'
+
+  onlyoffice-postgresql:
+    container_name: onlyoffice-postgresql
+    image: postgres:15.1
+    environment:
+      - POSTGRES_DB=onlyoffice
+      - POSTGRES_USER=onlyoffice
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    restart: always
+    expose:
+      - '5432'
+    volumes:
+      - /docker-data/onlyoffice/postgresql_data:/var/lib/postgresql
+
+  samba:
+    image: andyzhangx/samba:win-fix
+    container_name: samba
+    environment:
+      TZ: "Asian/Shanghai"
+      USERID: 1000
+      GROUPID: 1000
+    ports:
+      - "137:137/udp"
+      - "138:138/udp"
+      - "139:139/tcp"
+      - "445:445/tcp"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: always
+    stdin_open: true
+    tty: true
+    mem_limit: 512m
+    volumes:
+      - /docker-data/samba/705:/mnt-705
+    command: |
+      -u "n705;123"
+      -s "n705;/mnt-705;yes;no;no;n705"
+      -p
+
+  ftpd_server:
+    image: stilliard/pure-ftpd
+    container_name: pure-ftpd
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    volumes:
+      # remember to replace /folder_on_disk/ with the path to where you want to store the files on the host machine
+      - "/docker-data/samba/705:/home/n705/"
+    environment:
+      PUBLICHOST: "localhost"
+      FTP_USER_NAME: "n705"
+      FTP_USER_PASS: "123"
+      FTP_USER_HOME: "/home/n705"
+      FTP_MAX_CLIENTS: "50"
+      FTP_MAX_CONNECTIONS: "50"
+      FTP_PASSIVE_PORTS: "30000:30009"
+    # also for ssl/tls:
+    #      ADDED_FLAGS: "--tls=2"
+    restart: always
+
+  gitlab:
+    image: gitlab/gitlab-ce:16.3.2-ce.0
+    container_name: gitlab
+    expose:
+      - '80'
+    ports:
+      - "2222:22"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.n705.work'
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        nginx['proxy_set_headers'] = {
+          "X-Forwarded-Proto" => "https",
+          "X-Forwarded-Ssl" => "on"
+        }
+        letsencrypt['enable'] = false
+        gitlab_rails['gitlab_ssh_host'] = 'gitlab.n705.work'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['time_zone'] = 'Asia/Shanghai'
+        puma['worker_processes'] = 4
+    volumes:
+      - /docker-data/gitlab/config:/etc/gitlab
+      - /docker-data/gitlab/logs:/var/log/gitlab
+      - /docker-data/gitlab/data:/var/opt/gitlab
+    restart: always
+    shm_size: '256m'
+
+#  sharelatex:
+#    restart: always
+#    image: sharelatex/sharelatex:3.5
+#    container_name: sharelatex
+#    depends_on:
+#      sharelatex-mongo:
+#        condition: service_healthy
+#      sharelatex-redis:
+#        condition: service_started
+#    expose:
+#      - 80
+#    links:
+#      - sharelatex-mongo
+#      - sharelatex-redis
+#    stop_grace_period: 60s
+#    volumes:
+#      - /docker-data/sharelatex/sharelatex_data:/var/lib/sharelatex
+#    environment:
+#      SHARELATEX_APP_NAME: Overleaf Community Edition
+#      SHARELATEX_MONGO_URL: mongodb://sharelatex-mongo/sharelatex
+#      SHARELATEX_REDIS_HOST: sharelatex-redis
+#      REDIS_HOST: sharelatex-redis
+#      ENABLED_LINKED_FILE_TYPES: 'project_file,project_output_file'
+#      ENABLE_CONVERSIONS: 'true'
+#      EMAIL_CONFIRMATION_DISABLED: 'true'
+#      TEXMFVAR: /var/lib/sharelatex/tmp/texmf-var
+#      SHARELATEX_SITE_URL: http://sharelatex.mydomain.com
+#      SHARELATEX_NAV_TITLE: n705 ShareLaTeX Instance
+
+#  sharelatex-mongo:
+#    restart: always
+#    image: mongo:4.4
+#    container_name: sharelatex-mongo
+#    expose:
+#      - 27017
+#    volumes:
+#      - /docker-data/sharelatex/mongo_data:/data/db
+#    healthcheck:
+#      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+#      interval: 10s
+#      timeout: 10s
+#      retries: 5
+
+#  sharelatex-redis:
+#    restart: always
+#    image: redis:5
+#    container_name: sharelatex-redis
+#    expose:
+#      - 6379
+#    volumes:
+#      - /docker-data/sharelatex/redis_data:/data
+
+  nginx:
+    image: nginx:1.23.2
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /docker-data/nginx/nc_nginx.conf:/etc/nginx/conf.d/nc_nginx.conf:ro
+      - /docker-data/nginx/gitlab_nginx.conf:/etc/nginx/conf.d/gitlab_nginx.conf:ro
+      - /docker-data/nginx/only_nginx.conf:/etc/nginx/conf.d/only_nginx.conf:ro
+#      - /docker-data/nginx/overleaf_nginx.conf:/etc/nginx/conf.d/overleaf_nginx.conf:ro
+      - /home/n705/nc.n705.work_nginx:/etc/nginx/certs/nc.n705.work_nginx/:ro
+      - /home/n705/gitlab.n705.work_nginx:/etc/nginx/certs/gitlab.n705.work_nginx/:ro
+      - /home/n705/only.n705.work_nginx:/etc/nginx/certs/only.n705.work_nginx/:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
