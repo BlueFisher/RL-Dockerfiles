@@ -1,0 +1,44 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: egl
+  namespace: n705
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: egl
+  template:
+    metadata:
+      labels:
+        app: egl
+    spec:
+      hostname: egl
+      nodeSelector:
+        kubernetes.io/hostname: n705-1
+      containers:
+      - name: egl
+        image: nvidia-egl-base:1.0-12.2.0
+        env:
+          - name: NOVNC_ENABLE
+            value: 'true'
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - name: volume-6i2q8m
+          mountPath: /data
+        - mountPath: /dev/shm
+          name: dshm
+      volumes:
+      - name: volume-6i2q8m
+        persistentVolumeClaim:
+          claimName: n705-pvc
+      - name: dshm
+        emptyDir:
+          medium: Memory

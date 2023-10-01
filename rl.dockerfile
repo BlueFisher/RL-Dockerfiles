@@ -1,10 +1,6 @@
-ARG UBUNTU_RELEASE=20.04
-ARG CUDA_VERSION=11.4.1
-ARG DRIVER_VERSION=525.85.12
+ARG CUDA_VERSION=12.2.0
 
-FROM nvidia-glx-base:3.2-${UBUNTU_RELEASE}-${CUDA_VERSION}-${DRIVER_VERSION}
-
-LABEL version "7.2-${DRIVER_VERSION}"
+FROM nvidia-egl-base:1.0-${CUDA_VERSION}
 
 # miniconda
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
@@ -43,25 +39,20 @@ RUN . /opt/conda/etc/profile.d/conda.sh && \
 
 RUN conda list
 
-EXPOSE 22
-EXPOSE 8080
-EXPOSE 6006 6007
-EXPOSE 61000 61001 61002
+EXPOSE 6006
 
-ENTRYPOINT ["/etc/bootstrap_sshd.sh"]
+ENTRYPOINT ["/etc/entrypoint_sshd.sh"]
 
-# RLVERSION=7.2
-# DRIVER_VERSION=470.57.02
-# DRIVER_VERSION=525.85.12
-# DRIVER_VERSION=535.104.05
+# RLVERSION=7.3
+# CUDA_VERSION=12.2.0
 
-# docker build . -t rl:${RLVERSION}-${DRIVER_VERSION} -f rl.dockerfile --network=host --build-arg DRIVER_VERSION=${DRIVER_VERSION} --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/"
+# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://bluefisher.work:10809/" --build-arg "https_proxy=http://bluefisher.work:10809/" --progress=plain
 
-# docker save -o ./rl-${RLVERSION}-${DRIVER_VERSION}.tar rl:${RLVERSION}-${DRIVER_VERSION}
+# docker save -o ./rl-${RLVERSION}-${CUDA_VERSION}.tar rl:${RLVERSION}-${CUDA_VERSION}
 
-# scp rl-${RLVERSION}-${DRIVER_VERSION}.tar cs@10.0.6.249:/home/cs/
+# scp rl-${RLVERSION}-${CUDA_VERSION}.tar cs@10.0.6.249:/home/cs/
 
-# docker load -i ./rl-${RLVERSION}-${DRIVER_VERSION}.tar
+# docker load -i ./rl-${RLVERSION}-${CUDA_VERSION}.tar
 
-# docker run -it --rm --entrypoint=bash rl:${RLVERSION}-${DRIVER_VERSION}
-# docker run -it -v /root/test:/data -p 31631:22 -p 30711:8080 -p 32295:6006 --shm-size="64g" rl:${RLVERSION}-${DRIVER_VERSION}
+# docker run -it --rm --entrypoint=bash rl:${RLVERSION}-${CUDA_VERSION}
+# docker run -it -v /root/test:/data -p 31631:22 -p 30711:8080 -p 32295:6006 --shm-size="64g" rl:${RLVERSION}-${CUDA_VERSION}
