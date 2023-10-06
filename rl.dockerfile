@@ -14,7 +14,7 @@ RUN apt-get update --fix-missing && \
     inetutils-ping pciutils && \
     rm -rf /var/lib/apt/lists/*
 
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_23.3.1-0-Linux-x86_64.sh -O ~/miniconda.sh && \
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_23.5.2-0-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
     rm ~/miniconda.sh && \
     /opt/conda/bin/conda clean -ay && \
@@ -43,10 +43,10 @@ EXPOSE 6006
 
 ENTRYPOINT ["/etc/entrypoint_sshd.sh"]
 
-# RLVERSION=7.3
+# RLVERSION=7.4
 # CUDA_VERSION=12.2.0
 
-# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://bluefisher.work:10809/" --build-arg "https_proxy=http://bluefisher.work:10809/" --progress=plain
+# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://bluefisher.work:10809/" --build-arg "https_proxy=http://bluefisher.work:10809/" --progress=plain --no-cache
 
 # docker save -o ./rl-${RLVERSION}-${CUDA_VERSION}.tar rl:${RLVERSION}-${CUDA_VERSION}
 

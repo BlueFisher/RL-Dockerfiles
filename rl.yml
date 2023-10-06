@@ -22,7 +22,7 @@ spec:
         kubernetes.io/hostname: n705-1
       containers:
       - name: rl
-        image: rl:7.3-12.2.0
+        image: rl:7.4-12.2.0
         env:
           - name: NOVNC_ENABLE
             value: 'true'
