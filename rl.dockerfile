@@ -26,7 +26,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_23.5.2-0-Li
 
 RUN . /opt/conda/etc/profile.d/conda.sh && \
     conda activate base && \
-    conda install -y pytorch torchvision pytorch-cuda=11.7 -c pytorch -c nvidia && \
+    conda install -y pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia && \
     conda clean -apy
 
 RUN . /opt/conda/etc/profile.d/conda.sh && \
