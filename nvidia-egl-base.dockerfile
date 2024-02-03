@@ -293,4 +293,4 @@ ENV SHELL /bin/bash
 ENTRYPOINT ["/etc/entrypoint.sh"]
 
 
-# docker build . -t nvidia-egl-base:1.0-12.2.0 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://bluefisher.work:10809/" --build-arg "https_proxy=http://bluefisher.work:10809/" --progress=plain
+# docker build . -t nvidia-egl-base:1.1-12.2.0 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain

@@ -1,6 +1,6 @@
 ARG CUDA_VERSION=12.2.0
 
-FROM nvidia-egl-base:1.0-${CUDA_VERSION}
+FROM nvidia-egl-base:1.1-${CUDA_VERSION}
 
 # miniconda
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
@@ -14,7 +14,7 @@ RUN apt-get update --fix-missing && \
     inetutils-ping pciutils && \
     rm -rf /var/lib/apt/lists/*
 
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_23.5.2-0-Linux-x86_64.sh -O ~/miniconda.sh && \
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_23.11.0-2-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
     rm ~/miniconda.sh && \
     /opt/conda/bin/conda clean -ay && \
@@ -32,7 +32,7 @@ RUN . /opt/conda/etc/profile.d/conda.sh && \
 RUN . /opt/conda/etc/profile.d/conda.sh && \
     conda activate base && \
     conda install -y gymnasium \
-    tensorboard matplotlib pillow pyyaml numpy grpcio requests beautifulsoup4 scikit-learn -c conda-forge && \
+    tensorboard opencv matplotlib pillow pyyaml numpy grpcio requests beautifulsoup4 scikit-learn -c conda-forge && \
     conda clean -apy
 
 # dm-control 依赖有问题
@@ -43,10 +43,10 @@ EXPOSE 6006
 
 ENTRYPOINT ["/etc/entrypoint_sshd.sh"]
 
-# RLVERSION=7.4
+# RLVERSION=7.4.1
 # CUDA_VERSION=12.2.0
 
-# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://bluefisher.work:10809/" --build-arg "https_proxy=http://bluefisher.work:10809/" --progress=plain --no-cache
+# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain --no-cache
 
 # docker save -o ./rl-${RLVERSION}-${CUDA_VERSION}.tar rl:${RLVERSION}-${CUDA_VERSION}
 
