@@ -29,6 +29,7 @@ ENV SIZEH 1080
 ENV REFRESH 60
 ENV DPI 96
 ENV CDEPTH 24
+# Valid values are either egl[n], or /dev/dri/card[n] only when --device=/dev/dri was used for the container ([n] is the order of the GPUs, where simply egl without the number is the same as egl0)
 ENV VGL_DISPLAY egl
 ENV PASSWD 1234
 ENV NOVNC_ENABLE false
