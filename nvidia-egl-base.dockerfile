@@ -1,14 +1,13 @@
 ARG CUDA_VERSION=12.2.0
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu20.04
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
 
 LABEL maintainer "blue_fisher@qq.com"
 
-ARG UBUNTU_RELEASE
-ARG CUDA_VERSION
+# Expose NVIDIA libraries and paths
 # Make all NVIDIA GPUs visible by default
-ARG NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_VISIBLE_DEVICES=all
 # Use noninteractive mode to skip confirmation when installing packages
-ARG DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 # All NVIDIA driver capabilities should preferably be used, check `NVIDIA_DRIVER_CAPABILITIES` inside the container if things do not work
 ENV NVIDIA_DRIVER_CAPABILITIES all
 # Disable VSYNC for NVIDIA GPUs
@@ -38,9 +37,8 @@ ENV NOVNC_ENABLE false
 ARG VIRTUALGL_VERSION=3.1
 ARG NOVNC_VERSION=1.4.0
 
-RUN rm /etc/apt/sources.list.d/cuda.list && \
-    cp /etc/apt/sources.list /etc/apt/sources.list.bak
-COPY sources20.04.list /etc/apt/sources.list
+RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
+COPY sources22.04.list /etc/apt/sources.list
 
 # Install locales to prevent X11 errors
 RUN apt-get clean && \
@@ -54,19 +52,13 @@ ENV LC_ALL en_US.UTF-8
 # Install Xvfb and other important libraries or packages
 RUN dpkg --add-architecture i386 && \
     apt-get update && apt-get install --no-install-recommends -y \
-        software-properties-common \
+software-properties-common \
         alsa-base \
         alsa-utils \
         apt-transport-https \
         apt-utils \
         build-essential \
         ca-certificates \
-        ssl-cert \
-        cups-browsed \
-        cups-bsd \
-        cups-common \
-        cups-filters \
-        cups-pdf \
         curl \
         file \
         wget \
@@ -86,7 +78,7 @@ RUN dpkg --add-architecture i386 && \
         python3 \
         python3-cups \
         python3-numpy \
-        mlocate \
+        ssl-cert \
         nano \
         vim \
         htop \
@@ -114,55 +106,51 @@ RUN dpkg --add-architecture i386 && \
         pulseaudio \
         supervisor \
         net-tools \
-        libglvnd-dev \
-        libglvnd-dev:i386 \
-        libgl1-mesa-dev \
-        libgl1-mesa-dev:i386 \
-        libegl1-mesa-dev \
-        libegl1-mesa-dev:i386 \
-        libgles2-mesa-dev \
-        libgles2-mesa-dev:i386 \
-        libglvnd0 \
-        libglvnd0:i386 \
-        libgl1 \
-        libgl1:i386 \
-        libglx0 \
-        libglx0:i386 \
-        libegl1 \
-        libegl1:i386 \
-        libgles2 \
-        libgles2:i386 \
-        libglu1 \
-        libglu1:i386 \
-        libsm6 \
-        libsm6:i386 \
-        pkg-config \
         packagekit-tools \
+        pkg-config \
         mesa-utils \
-        mesa-utils-extra \
         va-driver-all \
         va-driver-all:i386 \
         i965-va-driver-shaders \
         i965-va-driver-shaders:i386 \
         intel-media-va-driver-non-free \
         intel-media-va-driver-non-free:i386 \
-        libmfx-tools \
         libva2 \
         libva2:i386 \
         vainfo \
         vdpau-driver-all \
         vdpau-driver-all:i386 \
         vdpauinfo \
+        mesa-vulkan-drivers \
+        mesa-vulkan-drivers:i386 \
+        libvulkan-dev \
+        libvulkan-dev:i386 \
+        vulkan-tools \
+        ocl-icd-libopencl1 \
+        clinfo \
+        dbus-user-session \
+        dbus-x11 \
+        libdbus-c++-1-0v5 \
+        xkb-data \
+        xauth \
+        xbitmaps \
+        xdg-user-dirs \
+        xdg-utils \
+        xfonts-base \
+        xfonts-scalable \
+        xinit \
+        xsettingsd \
+        libxrandr-dev \
+        x11-xkb-utils \
+        x11-xserver-utils \
+        x11-utils \
+        x11-apps \
         xserver-xorg-input-all \
         xserver-xorg-input-wacom \
         xserver-xorg-video-all \
         xserver-xorg-video-intel \
         xserver-xorg-video-qxl \
-        vulkan-tools \
-        mesa-vulkan-drivers \
-        mesa-vulkan-drivers:i386 \
-        libvulkan-dev \
-        libvulkan-dev:i386 \
+        # Install OpenGL libraries
         libxau6 \
         libxau6:i386 \
         libxdmcp6 \
@@ -177,45 +165,46 @@ RUN dpkg --add-architecture i386 && \
         libxv1:i386 \
         libxtst6 \
         libxtst6:i386 \
-        xdg-user-dirs \
-        xdg-utils \
-        dbus-user-session \
-        dbus-x11 \
-        libdbus-c++-1-0v5 \
-        xkb-data \
-        x11-xkb-utils \
-        x11-xserver-utils \
-        x11-utils \
-        x11-apps \
-        xauth \
-        xbitmaps \
-        xfonts-base \
-        xfonts-scalable \
-        xinit \
-        xsettingsd \
-        libxrandr-dev \
-        # Install Xvfb, packages above this line should be the same between docker-nvidia-glx-desktop and docker-nvidia-egl-desktop
-        xvfb && \
+        libglvnd0 \
+        libglvnd0:i386 \
+        libgl1 \
+        libgl1:i386 \
+        libglx0 \
+        libglx0:i386 \
+        libegl1 \
+        libegl1:i386 \
+        libgles2 \
+        libgles2:i386 \
+        libglu1 \
+        libglu1:i386 \
+        libsm6 \
+        libsm6:i386 && \
     rm -rf /var/lib/apt/lists/* && \
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
+    # Configure OpenCL manually
+    mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
+    # Configure Vulkan manually
+    VULKAN_API_VERSION=$(dpkg -s libvulkan1 | grep -oP 'Version: [0-9|\.]+' | grep -oP '[0-9]+(\.[0-9]+)(\.[0-9]+)') && \
+    mkdir -pm755 /etc/vulkan/icd.d/ && echo "{\n\
+    \"file_format_version\" : \"1.0.0\",\n\
+    \"ICD\": {\n\
+        \"library_path\": \"libGLX_nvidia.so.0\",\n\
+        \"api_version\" : \"${VULKAN_API_VERSION}\"\n\
+    }\n\
+}" > /etc/vulkan/icd.d/nvidia_icd.json && \
     # Configure EGL manually
-    mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
-    echo "{\n\
+    mkdir -pm755 /usr/share/glvnd/egl_vendor.d/ && echo "{\n\
     \"file_format_version\" : \"1.0.0\",\n\
     \"ICD\": {\n\
         \"library_path\": \"libEGL_nvidia.so.0\"\n\
     }\n\
 }" > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 
-# Configure Vulkan manually
-RUN VULKAN_API_VERSION=$(dpkg -s libvulkan1 | grep -oP 'Version: [0-9|\.]+' | grep -oP '[0-9]+(\.[0-9]+)(\.[0-9]+)') && \
-    mkdir -p /etc/vulkan/icd.d/ && \
-    echo "{\n\
-    \"file_format_version\" : \"1.0.0\",\n\
-    \"ICD\": {\n\
-        \"library_path\": \"libGLX_nvidia.so.0\",\n\
-        \"api_version\" : \"${VULKAN_API_VERSION}\"\n\
-    }\n\
-}" > /etc/vulkan/icd.d/nvidia_icd.json
+# Install Xvfb
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        xvfb && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install VirtualGL and make libraries available for preload
 ARG VIRTUALGL_URL="https://sourceforge.net/projects/virtualgl/files"
@@ -294,4 +283,4 @@ ENV SHELL /bin/bash
 ENTRYPOINT ["/etc/entrypoint.sh"]
 
 
-# docker build . -t nvidia-egl-base:1.1-12.2.0 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain
+# docker build . -t nvidia-egl-base:2.0-12.2.0 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain
