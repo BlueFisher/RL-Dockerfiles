@@ -1,6 +1,6 @@
 ARG CUDA_VERSION=12.2.0
 
-FROM nvidia-egl-base:2.0-${CUDA_VERSION}
+FROM nvidia-egl-base:3.0-${CUDA_VERSION}
 
 # miniconda
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
@@ -15,7 +15,7 @@ RUN apt-get update --fix-missing && \
     inetutils-ping pciutils && \
     rm -rf /var/lib/apt/lists/*
 
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py311_24.5.0-0-Linux-x86_64.sh -O ~/miniconda.sh && \
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py311_24.9.2-0-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
     rm ~/miniconda.sh && \
     /opt/conda/bin/conda clean -ay && \
@@ -33,7 +33,7 @@ RUN . /opt/conda/etc/profile.d/conda.sh && \
 RUN . /opt/conda/etc/profile.d/conda.sh && \
     conda activate base && \
     conda install -y gymnasium \
-    tensorboard opencv matplotlib pillow pyyaml numpy grpcio=1.62 requests beautifulsoup4 scikit-learn -c conda-forge && \
+    tensorboard opencv matplotlib pillow pyyaml numpy grpcio requests beautifulsoup4 scikit-learn -c conda-forge && \
     conda clean -apy
 
 RUN . /opt/conda/etc/profile.d/conda.sh && \
@@ -47,10 +47,9 @@ EXPOSE 6006
 
 ENTRYPOINT ["/etc/entrypoint_sshd.sh"]
 
-# RLVERSION=7.7.0
-# CUDA_VERSION=12.2.0
+# RLVERSION=7.8.0 CUDA_VERSION=12.2.0
 
-# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain --no-cache
+# docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain
 # docker tag rl:${RLVERSION}-${CUDA_VERSION} harbor.n705.work/n705/rl:${RLVERSION}-${CUDA_VERSION}
 # docker push harbor.n705.work/n705/rl:${RLVERSION}-${CUDA_VERSION}
 
