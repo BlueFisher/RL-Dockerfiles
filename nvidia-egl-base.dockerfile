@@ -1,4 +1,4 @@
-ARG CUDA_VERSION=12.2.0
+ARG CUDA_VERSION=13.1.2
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
 
 LABEL maintainer "blue_fisher@qq.com"
@@ -34,8 +34,8 @@ ENV PASSWD 1234
 ENV NOVNC_ENABLE false
 
 # Set versions for components that should be manually checked before upgrading, other component versions are automatically determined by fetching the version online
-ARG VIRTUALGL_VERSION=3.1.1
-ARG NOVNC_VERSION=1.5.0
+ARG VIRTUALGL_VERSION=3.1.4
+ARG NOVNC_VERSION=1.7.0
 
 RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak
 COPY sources22.04.list /etc/apt/sources.list
@@ -285,4 +285,4 @@ ENV SHELL /bin/bash
 ENTRYPOINT ["/etc/entrypoint.sh"]
 
 
-# docker build . -t nvidia-egl-base:3.0-12.2.0 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://192.168.3.2:10809/" --build-arg "https_proxy=http://192.168.3.2:10809/" --progress=plain
+# docker build . -t nvidia-egl-base:3.1-13.1.2 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://192.168.3.2:10808/" --build-arg "https_proxy=http://192.168.3.2:10808/" --progress=plain

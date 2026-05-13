@@ -1,6 +1,6 @@
-ARG CUDA_VERSION=12.2.0
+ARG CUDA_VERSION=13.1.2
 
-FROM nvidia-egl-base:3.0-${CUDA_VERSION}
+FROM nvidia-egl-base:3.1-${CUDA_VERSION}
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 
@@ -23,7 +23,7 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 RUN ln -s /usr/bin/python3.11 /usr/bin/python && \
     ln -sf /usr/bin/python3.11 /usr/bin/python3
 
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118 && \
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130 && \
     pip cache purge
 
 RUN pip install tensorboard matplotlib gymnasium \
@@ -36,7 +36,7 @@ EXPOSE 6006
 
 ENTRYPOINT ["/etc/entrypoint_sshd.sh"]
 
-# RLVERSION=7.9.0 CUDA_VERSION=12.2.0
+# RLVERSION=8.1.0 CUDA_VERSION=13.1.2
 
 # docker build . -t rl:${RLVERSION}-${CUDA_VERSION} -f rl.dockerfile --network=host --build-arg CUDA_VERSION=${CUDA_VERSION} --build-arg "http_proxy=http://bluefisher.work:10808/" --build-arg "https_proxy=http://bluefisher.work:10808/" --progress=plain
 # docker tag rl:${RLVERSION}-${CUDA_VERSION} harbor.n705.work/n705/rl:${RLVERSION}-${CUDA_VERSION}
