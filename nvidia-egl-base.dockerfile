@@ -1,7 +1,7 @@
-ARG CUDA_VERSION=13.1.2
+ARG CUDA_VERSION=13.0.3
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
 
-LABEL maintainer "blue_fisher@qq.com"
+LABEL maintainer "zy.zhang@shmtu.edu.cn"
 
 # Expose NVIDIA libraries and paths
 # Make all NVIDIA GPUs visible by default
@@ -246,9 +246,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libxss-dev \
         libxtst-dev \
         libavahi-client-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    # Build the latest x11vnc source to avoid various errors
-    git clone "https://github.com/LibVNC/x11vnc.git" /tmp/x11vnc && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build the latest x11vnc source to avoid various errors
+RUN git clone "https://github.com/LibVNC/x11vnc.git" /tmp/x11vnc && \
     cd /tmp/x11vnc && autoreconf -fi && ./configure && make install && cd / && rm -rf /tmp/* && \
     curl -fsSL "https://github.com/novnc/noVNC/archive/v${NOVNC_VERSION}.tar.gz" | tar -xzf - -C /opt && \
     mv -f "/opt/noVNC-${NOVNC_VERSION}" /opt/noVNC && \
@@ -283,6 +284,3 @@ EXPOSE 8080
 ENV SHELL /bin/bash
 
 ENTRYPOINT ["/etc/entrypoint.sh"]
-
-
-# docker build . -t nvidia-egl-base:3.1-13.1.2 -f nvidia-egl-base.dockerfile --network=host --build-arg "http_proxy=http://192.168.3.2:10808/" --build-arg "https_proxy=http://192.168.3.2:10808/" --progress=plain
